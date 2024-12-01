@@ -1,0 +1,138 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["maintainer"],
+    "properties": {
+      "maintainer": {
+        "type": "object",
+        "required": ["version", "environment", "logging", "auth", "analyzers", "notifications"],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "enum": ["development", "staging", "production"]
+          },
+          "logging": {
+            "type": "object",
+            "required": ["level", "format", "outputs"],
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": ["error", "warn", "info", "debug"]
+              },
+              "format": {
+                "type": "string",
+                "enum": ["json", "text"]
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["console", "file"]
+                }
+              }
+            }
+          },
+          "auth": {
+            "type": "object",
+            "required": ["jwtSecret", "tokenExpiration"],
+            "properties": {
+              "jwtSecret": {
+                "type": "string"
+              },
+              "tokenExpiration": {
+                "type": "string"
+              }
+            }
+          },
+          "analyzers": {
+            "type": "object",
+            "required": ["complexity", "security", "performance"],
+            "properties": {
+              "complexity": {
+                "type": "object",
+                "required": ["maxCyclomaticComplexity", "maxCognitiveComplexity"],
+                "properties": {
+                  "maxCyclomaticComplexity": {
+                    "type": "number"
+                  },
+                  "maxCognitiveComplexity": {
+                    "type": "number"
+                  }
+                }
+              },
+              "security": {
+                "type": "object",
+                "required": ["scanInterval", "severityThreshold"],
+                "properties": {
+                  "scanInterval": {
+                    "type": "string"
+                  },
+                  "severityThreshold": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"]
+                  }
+                }
+              },
+              "performance": {
+                "type": "object",
+                "required": ["maxResponseTime", "maxMemoryUsage"],
+                "properties": {
+                  "maxResponseTime": {
+                    "type": "number"
+                  },
+                  "maxMemoryUsage": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "notifications": {
+            "type": "object",
+            "required": ["slack", "email"],
+            "properties": {
+              "slack": {
+                "type": "object",
+                "required": ["enabled", "webhook"],
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "webhook": {
+                    "type": "string"
+                  }
+                }
+              },
+              "email": {
+                "type": "object",
+                "required": ["enabled", "smtp"],
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "smtp": {
+                    "type": "object",
+                    "required": ["host", "port", "secure"],
+                    "properties": {
+                      "host": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "number"
+                      },
+                      "secure": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

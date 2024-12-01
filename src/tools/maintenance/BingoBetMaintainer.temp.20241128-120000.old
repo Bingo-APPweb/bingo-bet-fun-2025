@@ -1,0 +1,154 @@
+// === PASSO 1: Mantemos todo o início do arquivo original ===
+import { EventEmitter } from 'events';
+import { readFile, writeFile } from 'fs/promises';
+import * as path from 'path';
+import * as ts from 'typescript'; // <- Adicionamos essa importação necessária
+
+interface DependencyInfo {
+  name: string;
+  currentVersion: string;
+  latestVersion: string;
+  breaking: boolean;
+  updatePriority: 'high' | 'medium' | 'low';
+}
+
+interface CodeHealth {
+  complexity: number;
+  coverage: number;
+  duplications: number;
+  maintainability: number;
+}
+
+interface Config {
+  checkInterval: number;
+  healthThresholds: {
+    complexity: number;
+    coverage: number;
+    duplications: number;
+    maintainability: number;
+  };
+}
+
+class BingoBetMaintainer extends EventEmitter {
+  private readonly configPath: string = 'bingo-maintain.json';
+  private healthScores: Map<string, CodeHealth> = new Map();
+  private dependencies: Map<string, DependencyInfo> = new Map();
+  private config: Config;
+
+  constructor(private projectRoot: string) {
+    super();
+    this.config = {
+      checkInterval: 24 * 60 * 60 * 1000,
+      healthThresholds: {
+        complexity: 20,
+        coverage: 80,
+        duplications: 5,
+        maintainability: 75,
+      },
+    };
+  }
+
+  // === PASSO 2: Mantemos todos os métodos que não precisam de alteração ===
+  // ... (initialize, periodicHealthCheck, analyzeDependencies, etc...)
+
+  // === PASSO 3: Substituímos apenas os métodos que precisam de correção ===
+
+  private async calculateCoverage(filePath: string): Promise<number> {
+    try {
+      const content = await readFile(filePath, 'utf-8');
+      const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
+
+      let totalStatements = 0;
+      let coveredStatements = 0;
+
+      // Encontra o arquivo de teste correspondente
+      const testFilePath = filePath.replace(/\.tsx?$/, '.test.tsx');
+      let testContent = '';
+
+      try {
+        testContent = await readFile(testFilePath, 'utf-8');
+      } catch {
+        // Se não encontrar com .test.tsx, tenta .spec.tsx
+        const specFilePath = filePath.replace(/\.tsx?$/, '.spec.tsx');
+        try {
+          testContent = await readFile(specFilePath, 'utf-8');
+        } catch {
+          return 0; // Sem arquivo de teste
+        }
+      }
+
+      // Analisa o arquivo fonte para contar statements
+      const countStatements = (node: ts.Node) => {
+        if (ts.isStatement(node) && !ts.isBlock(node)) {
+          totalStatements++;
+        }
+        ts.forEachChild(node, countStatements);
+      };
+
+      countStatements(sourceFile);
+
+      // Analisa o arquivo de teste para encontrar cobertura
+      const testSourceFile = ts.createSourceFile(
+        'test.tsx',
+        testContent,
+        ts.ScriptTarget.Latest,
+        true
+      );
+
+      const findTestCases = (node: ts.Node) => {
+        if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          ['it', 'test', 'describe'].includes(node.expression.text)
+        ) {
+          coveredStatements++;
+        }
+        ts.forEachChild(node, findTestCases);
+      };
+
+      findTestCases(testSourceFile);
+
+      return Math.min(100, (coveredStatements / totalStatements) * 100);
+    } catch (error) {
+      console.error(`Erro ao calcular cobertura para ${filePath}:`, error);
+      return 0;
+    }
+  }
+
+  private async findDuplications(content: string): Promise<number> {
+    const lines = content.split('\n');
+    const duplications = new Map<string, number>();
+    let duplicationCount = 0;
+
+    // Tamanho mínimo do bloco para considerar duplicação
+    const MIN_BLOCK_SIZE = 6;
+
+    // Analisa blocos de código
+    for (let i = 0; i <= lines.length - MIN_BLOCK_SIZE; i++) {
+      const block = lines
+        .slice(i, i + MIN_BLOCK_SIZE)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .join('\n');
+
+      if (block.length > 0) {
+        // Ignora blocos muito pequenos ou que são só imports
+        if (!block.startsWith('import') && block.length > 50 && !block.match(/^[\s{};]*$/)) {
+          const count = duplications.get(block) || 0;
+          if (count === 1) {
+            // Primeira duplicação encontrada
+            duplicationCount++;
+          }
+          duplications.set(block, count + 1);
+        }
+      }
+    }
+
+    return duplicationCount;
+  }
+
+  // === PASSO 4: Mantemos o resto do arquivo original ===
+  // ... (resto dos métodos e export)
+}
+
+export { BingoBetMaintainer, DependencyInfo, CodeHealth, Config };

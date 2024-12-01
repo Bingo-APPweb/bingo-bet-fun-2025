@@ -1,0 +1,129 @@
+{
+  "name": "bingo-bet-fun-2025",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "start": "node dist/server/server.js",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:analyze": "tsc scripts/analyze-project.ts --outDir dist",
+    "build:client": "vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:all": "npm run build:client && npm run build:server",
+    "preview": "vite preview",
+    "test": "vitest",
+    "analyze": "ts-node scripts/analyze-project.ts",
+    "analyze:prod": "node dist/scripts/analyze-project.js",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --environment jsdom --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "emulator": "firebase emulators:start",
+    "organize": "tsx scripts/organize-tree.ts",
+    "organize:dry": "NODE_ENV=development ts-node --esm scripts/organize-tree.ts --dry-run",
+    "deploy": "gcloud run deploy bingoapp-service --source . --platform managed --region us-central1 --allow-unauthenticated",
+    "test:with-emulator": "firebase emulators:exec 'vitest'"
+  },
+  "bin": {
+    "analyze-project": "./dist/scripts/analyze-project.js"
+  },
+  "dependencies": {
+    "@firebase/app": "^0.10.16",
+    "@firebase/auth": "^1.8.1",
+    "@firebase/firestore": "^4.7.5",
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@tailwindcss/forms": "^0.5.9",
+    "axios": "^1.7.7",
+    "chalk": "^4.1.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "compression": "^1.7.5",
+    "express": "^4.21.1",
+    "firebase": "^11.0.2",
+    "helmet": "^8.0.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^2.5.4",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@firebase/testing": "^0.20.11",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/chalk": "^0.4.31",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@vitest/coverage-c8": "^0.31.4",
+    "@vitest/ui": "^0.31.4",
+    "autoprefixer": "^10.4.20",
+    "chalk": "^5.3.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "firebase-tools": "^13.25.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^21.1.2",
+    "postcss": "^8.4.49",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.15",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.4.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^0.31.4"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
+    "testEnvironment": "jsdom"
+  },
+  "vitest": {
+    "environment": "jsdom",
+    "globals": true,
+    "setupFiles": [
+      "./src/setupTests.ts"
+    ],
+    "include": [
+      "src/**/*.{test,spec}.{ts,tsx}"
+    ],
+    "exclude": [
+      "node_modules",
+      "dist"
+    ],
+    "coverage": {
+      "reporter": [
+        "text",
+        "json",
+        "html"
+      ],
+      "exclude": [
+        "node_modules/",
+        "src/setupTests.ts"
+      ]
+    }
+  }
+}

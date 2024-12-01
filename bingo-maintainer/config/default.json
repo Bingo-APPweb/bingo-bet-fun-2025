@@ -1,0 +1,44 @@
+
+{
+    "maintainer": {
+      "version": "1.0.0",
+      "environment": "development",
+      "logging": {
+        "level": "info",
+        "format": "json",
+        "outputs": ["console", "file"]
+      },
+      "auth": {
+        "jwtSecret": "your-secret-key-here",
+        "tokenExpiration": "24h"
+      },
+      "analyzers": {
+        "complexity": {
+          "maxCyclomaticComplexity": 10,
+          "maxCognitiveComplexity": 15
+        },
+        "security": {
+          "scanInterval": "12h",
+          "severityThreshold": "medium"
+        },
+        "performance": {
+          "maxResponseTime": 200,
+          "maxMemoryUsage": "80%"
+        }
+      },
+      "notifications": {
+        "slack": {
+          "enabled": false,
+          "webhook": ""
+        },
+        "email": {
+          "enabled": false,
+          "smtp": {
+            "host": "",
+            "port": 587,
+            "secure": true
+          }
+        }
+      }
+    }
+  }

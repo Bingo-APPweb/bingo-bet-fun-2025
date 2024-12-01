@@ -1,0 +1,17 @@
+{
+    "rules": {
+      "complexity": 20,
+      "coverage": 80,
+      "duplications": 5,
+      "maintainability": 75,
+      "rootDir": ".",
+      "testFramework": "jest",
+      "testMatch": ["**/__tests__/**/*.test.ts"],
+      "exclude": ["node_modules", "dist"]
+    },
+    "autofix": true,
+    "notifications": {
+      "slack": "webhook_url",
+      "email": "team@bingobet.fun"
+    }
+  }

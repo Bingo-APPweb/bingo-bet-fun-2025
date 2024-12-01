@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Criar estrutura principal de diretórios
+mkdir -p src/components/game/{BingoCard,GameControls,StreamViewer,Chat}
+mkdir -p src/components/ui
+mkdir -p src/stores
+mkdir -p src/lib/{firebase,youtube}
+mkdir -p src/types
+mkdir -p src/utils
+
+# Criar arquivos de componentes
+touch src/components/game/BingoCard/{index.tsx,styles.ts}
+touch src/components/game/GameControls/{index.tsx,styles.ts}
+touch src/components/game/StreamViewer/{index.tsx,styles.ts}
+touch src/components/game/Chat/{index.tsx,styles.ts}
+
+# Criar arquivos de store
+touch src/stores/{gameStore.ts,chatStore.ts,streamStore.ts}
+
+# Criar arquivos de configuração
+touch src/lib/firebase/{config.ts,client.ts}
+touch src/lib/youtube/{config.ts,client.ts}
+
+# Criar arquivos de tipos
+touch src/types/{game.ts,stream.ts,chat.ts}
+
+# Criar arquivos de utilidades
+touch src/utils/{validation.ts,numbers.ts}
+
+# Criar arquivo principal
+touch src/app.tsx
+
+# Garantir que temos um gitignore apropriado
+echo "node_modules/
+.env
+.env.local
+dist/
+build/
+.DS_Store
+*.log" > .gitignore
+
+# Adicionar arquivo README básico
+echo "# BingoBetFun
+
+Um jogo de bingo multiplayer interativo com integração de streams.
+
+## Estrutura do Projeto
+
+\`\`\`
+src/
+├── components/          # Componentes React
+├── stores/             # Estado global (Zustand)
+├── lib/                # Integrações externas
+├── types/              # Definições de tipos
+└── utils/              # Funções utilitárias
+\`\`\`
+" > README.md
+
+# Dar permissões de execução se necessário
+chmod +x setup-project.sh

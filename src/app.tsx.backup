@@ -1,0 +1,186 @@
+import React, { Suspense } from 'react';
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent,
+  YouTubeIntegration 
+} from '@/components/ui';
+
+import { 
+  GameProvider, 
+  BingoGame,
+  useGame 
+} from '@/features/game';
+
+import {
+  BingoPlayer,
+  BingoHost
+} from '@/features';
+
+import { useGameStore } from '@/stores/gameStore';
+import { useAuth } from '@/features/auth';
+import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
+import { StreamingRoom } from '@/components';
+import { Home } from '@/pages';
+
+// Lazy loading dos componentes do jogo
+const BingoCard = React.lazy(() => import('@/components/game/BingoCard'));
+const GameControls = React.lazy(() => import('@/components/game/GameControls'));
+const Chat = React.lazy(() => import('@/components/game/Chat'));
+
+// Lazy load do dashboard apenas em desenvolvimento
+const IntegrationTestDashboard = React.lazy(() => 
+  import('@/components/debug/IntegrationTestDashboard')
+);
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-32">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
+const App = () => {
+  const { user } = useAuth();
+  const isHost = user?.role === 'host';
+  return <Home />;
+};
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-6">
+          <img 
+            src="/api/placeholder/48/48" 
+            alt="BingoBetFun" 
+            className="h-12 w-12"
+          />
+          <h1 className="text-2xl font-bold text-blue-600">BingoBetFun</h1>
+        </div>
+
+        {/* Main Game Area */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Game Board */}
+          <div className="order-2 md:order-1">
+            <GameEngine />
+          </div>
+
+          {/* Stream Preview */}
+          <div className="order-1 md:order-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Live Stream</CardTitle>
+              </CardHeader>
+              <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-white">
+                Stream Preview
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+      <StreamingRoom />
+    </div>
+    
+    <div className="min-h-screen bg-background">
+      {isHost ? <BingoHost /> : <BingoPlayer />}
+    </div>
+    <GameProvider>
+      {/* Ambiente de desenvolvimento */}
+      {import.meta.env.DEV && (
+        <Suspense fallback={<LoadingFallback />}>
+          <IntegrationTestDashboard />
+        </Suspense>
+      )}
+
+      {/* Aplicação principal */}
+      <Suspense fallback={<LoadingFallback />}>
+      <BingoGame />
+      </Suspense>
+    </GameProvider>
+  );
+};
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
+
+const MyComponent = () => {
+  const { metrics, bingoNumbers, isValidated } = useGame();
+
+  return (
+    <div>
+      {/* Use os dados aqui */}
+    </div>
+  );
+};
+
+export default function App() {
+  const { game, isHost, isLoading, error } = useGameStore();
+
+  if (error) {
+    return (
+      <Card className="p-4 bg-red-50 border-red-200">
+        <div className="text-red-600">
+          <h2 className="text-lg font-semibold">Error</h2>
+          <p>{error}</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  return (
+    <ErrorBoundary>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">BingoBetFun</h1>
+        <YouTubeIntegration isHost={true} />
+        <div className="mt-6">
+          <GameComponent />
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+}
+        {/* Integração com YouTube */}
+        <YouTubeIntegration isHost={isHost} />
+
+        {/* Componentes do Jogo */}
+        <div className="grid md:grid-cols-2 gap-4 mt-6">
+          <div className="space-y-4">
+            <Suspense fallback={<LoadingFallback />}>
+              {isHost && <GameControls />}
+              <BingoCard />
+            </Suspense>
+          </div>
+
+          <div className="space-y-4">
+            <Suspense fallback={<LoadingFallback />}>
+              <Chat />
+            </Suspense>
+          </div>
+        </div>
+
+        {/* Status do Jogo */}
+        {game && (
+          <Card className="mt-4">
+            <CardContent className="text-center py-4">
+              <div className="text-sm text-gray-500">Game Status</div>
+              <div className="text-xl font-bold">{game.status.toUpperCase()}</div>
+            </CardContent>
+          </Card>
+        )}
+      </ErrorBoundary>
+    </div>
+  );
+}
+export default App;

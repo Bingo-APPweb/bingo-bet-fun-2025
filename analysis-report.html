@@ -1,0 +1,132 @@
+private async generateReport(analysis: ProjectAnalysis): Promise<void> {
+    const reportPath = join(this.PROJECT_ROOT, 'analysis-report.html');
+    
+    const reportHTML = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Análise do Projeto BINGO-BET-FUN-2025</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="bg-gray-100">
+          <div class="container mx-auto px-4 py-8">
+              <h1 class="text-4xl font-bold mb-8">Análise do Projeto BINGO-BET-FUN-2025</h1>
+              
+              <!-- Visão Geral -->
+              <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 class="text-2xl font-semibold mb-4">Visão Geral</h2>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div class="p-4 bg-blue-50 rounded-lg">
+                          <p class="text-sm text-blue-600">Total de Arquivos</p>
+                          <p class="text-2xl font-bold">${analysis.overview.totalFiles}</p>
+                      </div>
+                      <div class="p-4 bg-green-50 rounded-lg">
+                          <p class="text-sm text-green-600">Componentes</p>
+                          <p class="text-2xl font-bold">${analysis.overview.componentsCount}</p>
+                      </div>
+                      <div class="p-4 bg-purple-50 rounded-lg">
+                          <p class="text-sm text-purple-600">Serviços</p>
+                          <p class="text-2xl font-bold">${analysis.overview.servicesCount}</p>
+                      </div>
+                      <div class="p-4 bg-yellow-50 rounded-lg">
+                          <p class="text-sm text-yellow-600">Hooks</p>
+                          <p class="text-2xl font-bold">${analysis.overview.hooksCount}</p>
+                      </div>
+                  </div>
+              </div>
+  
+              <!-- Issues -->
+              <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 class="text-2xl font-semibold mb-4">Problemas Encontrados</h2>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div class="p-4 bg-red-50 rounded-lg">
+                          <p class="text-sm text-red-600">Alta Prioridade</p>
+                          <p class="text-2xl font-bold">${analysis.overview.issues.high}</p>
+                      </div>
+                      <div class="p-4 bg-yellow-50 rounded-lg">
+                          <p class="text-sm text-yellow-600">Média Prioridade</p>
+                          <p class="text-2xl font-bold">${analysis.overview.issues.medium}</p>
+                      </div>
+                      <div class="p-4 bg-blue-50 rounded-lg">
+                          <p class="text-sm text-blue-600">Baixa Prioridade</p>
+                          <p class="text-2xl font-bold">${analysis.overview.issues.low}</p>
+                      </div>
+                  </div>
+              </div>
+  
+              <!-- Sugestões -->
+              <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 class="text-2xl font-semibold mb-4">Sugestões de Melhorias</h2>
+                  <div class="space-y-4">
+                      ${analysis.suggestions.map(suggestion => `
+                          <div class="p-4 ${
+                            suggestion.priority === 'high' ? 'bg-red-50' :
+                            suggestion.priority === 'medium' ? 'bg-yellow-50' :
+                            'bg-blue-50'
+                          } rounded-lg">
+                              <p class="font-semibold">${suggestion.category}</p>
+                              <p class="text-gray-700">${suggestion.description}</p>
+                          </div>
+                      `).join('')}
+                  </div>
+              </div>
+  
+              <!-- Detalhes dos Componentes -->
+              <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 class="text-2xl font-semibold mb-4">Análise dos Componentes</h2>
+                  <div class="overflow-x-auto">
+                      <table class="min-w-full">
+                          <thead>
+                              <tr class="bg-gray-50">
+                                  <th class="px-6 py-3 text-left">Nome</th>
+                                  <th class="px-6 py-3 text-left">Complexidade</th>
+                                  <th class="px-6 py-3 text-left">Hooks</th>
+                                  <th class="px-6 py-3 text-left">Issues</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              ${analysis.components.map(component => `
+                                  <tr class="border-t">
+                                      <td class="px-6 py-4">${component.name}</td>
+                                      <td class="px-6 py-4">${component.complexity.complexity}</td>
+                                      <td class="px-6 py-4">${component.hooks.length}</td>
+                                      <td class="px-6 py-4">${component.issues.length}</td>
+                                  </tr>
+                              `).join('')}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+  
+              <!-- Dependencies -->
+              <div class="bg-white rounded-lg shadow-md p-6">
+                  <h2 class="text-2xl font-semibold mb-4">Dependências</h2>
+                  <div class="space-y-4">
+                      ${analysis.dependencies
+                        .sort((a, b) => b.usageCount - a.usageCount)
+                        .map(dep => `
+                          <div class="p-4 bg-gray-50 rounded-lg">
+                              <div class="flex justify-between items-center">
+                                  <p class="font-semibold">${dep.name}</p>
+                                  <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                      ${dep.usageCount} usos
+                                  </span>
+                              </div>
+                          </div>
+                      `).join('')}
+                  </div>
+              </div>
+          </div>
+  
+          <script>
+              // Adicione interatividade aqui se necessário
+          </script>
+      </body>
+      </html>
+    `;
+  
+    await fs.writeFile(reportPath, reportHTML);
+    console.log(chalk.green(`\n✨ Relatório gerado em ${reportPath}\n`));
+  }

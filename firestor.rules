@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Funções base de autenticação e validação
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidUser() {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Funções de validação de role e status
+    function isHost(gameData) {
+      return isSignedIn() && 
+             gameData.players[request.auth.uid].role == 'host';
+    }
+    
+    function isPlayer(gameData) {
+      return isSignedIn() && 
+             exists(gameData.players[request.auth.uid]);
+    }
+
+    function isStreamHost(streamGameData) {
+      return isSignedIn() && 
+             streamGameData.hostId == request.auth.uid;
+    }
+
+    // Validações de dados
+    function isValidGameData() {
+      let data = request.resource.data;
+      return data.size() <= 50 && // Limite de tamanho
+             data.title is string &&
+             data.status in ['waiting', 'active', 'completed', 'cancelled', 'paused'] &&
+             data.players is map &&
+             data.currentNumbers is list &&
+             data.currentNumbers.size() <= 75 &&
+             data.settings is map &&
+             isValidGameSettings(data.settings);
+    }
+
+    function isValidGameSettings(settings) {
+      return settings.maxPlayers is number &&
+             settings.maxPlayers <= 100 &&
+             settings.winPattern in ['fullHouse', 'singleLine', 'diagonal', 'fourCorners'] &&
+             settings.centerFree is bool;
+    }
+
+    function isValidStreamGameData() {
+      let data = request.resource.data;
+      return data.streamId is string &&
+             data.status in ['waiting', 'active', 'completed'] &&
+             data.metrics is map &&
+             data.settings is map &&
+             isValidStreamSettings(data.settings);
+    }
+
+    function isValidStreamSettings(settings) {
+      return settings.autoGenerateNumbers is bool &&
+             settings.minViewersToStart is number &&
+             settings.numbersPerMetricUpdate is number &&
+             settings.numbersPerMetricUpdate <= 5;
+    }
+
+    // Regras para jogos normais
+    match /games/{gameId} {
+      allow read: if isSignedIn();
+      
+      allow create: if isValidUser() && 
+                      isValidGameData() && 
+                      request.resource.data.players[request.auth.uid].role == 'host';
+      
+      allow update: if isValidUser() && 
+                      isValidGameData() &&
+                      (isHost(resource.data) || 
+                      (isPlayer(resource.data) && 
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['players', resource.data.players[request.auth.uid].path])));
+      
+      allow delete: if isHost(resource.data);
+
+      // Regras para rounds
+      match /rounds/{roundId} {
+        allow read: if isValidUser() && isPlayer(get(/databases/$(database)/documents/games/$(gameId)).data);
+        allow write: if isValidUser() && isHost(get(/databases/$(database)/documents/games/$(gameId)).data);
+      }
+    }
+
+    // Regras para jogos via stream
+    match /streamGames/{streamId} {
+      allow read: if isValidUser();
+      
+      allow create: if isValidUser() && 
+                      isValidStreamGameData() &&
+                      request.resource.data.hostId == request.auth.uid;
+      
+      allow update: if isValidUser() &&
+                      isValidStreamGameData() &&
+                      (isStreamHost(resource.data) ||
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['players', 'metrics']));
+                      
+      allow delete: if isStreamHost(resource.data);
+    }
+
+    // Regras para usuários
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+      
+      match /stats/{statId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // Regras para métricas
+    match /metrics/{metricId} {
+      allow read: if isValidUser();
+      allow write: if false; // Apenas Cloud Functions podem escrever métricas
+    }
+
+    // Regras para chat
+    match /chat/{messageId} {
+      allow read: if isValidUser();
+      allow create: if isValidUser() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.message is string &&
+                      request.resource.data.message.size() <= 500;
+      allow update, delete: if false;
+    }
+  }
+}

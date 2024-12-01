@@ -1,0 +1,30 @@
+import { BingoBetMaintainer } from './BingoBetMaintainer';
+import { DependencyInfo, CodeHealth } from './BingoBetMaintainer';
+
+async function main() {
+  const maintainer = new BingoBetMaintainer(process.cwd());
+
+  // Configura listeners para eventos
+  maintainer.on('dependencies-analyzed', (deps: Map<string, DependencyInfo>) => {
+    console.log('Dependências analisadas:', deps);
+  });
+
+  maintainer.on('health-measured', (scores) => {
+    console.log('\nSaúde do código medida para', scores.size, 'arquivos');
+  });
+
+  maintainer.on('health-measured', (scores: Map<string, CodeHealth>) => {
+    console.log('Saúde do código medida:', scores);
+  });
+
+  try {
+    // Gera e exibe o relatório
+    const report = await maintainer.generateReport();
+    console.log('\nRelatório de Manutenção:');
+    console.log(report);
+  } catch (error) {
+    console.error('Falha ao gerar relatório:', error);
+  }
+}
+
+main().catch(console.error);
